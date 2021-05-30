@@ -1,4 +1,4 @@
-package com.example.study;
+package com.example.study.dish;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

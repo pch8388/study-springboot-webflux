@@ -1,4 +1,4 @@
-package com.example.study;
+package com.example.study.dish;
 
 import java.time.Duration;
 import java.util.Arrays;
