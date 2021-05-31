@@ -7,15 +7,19 @@ import lombok.Setter;
 @Getter
 @Setter
 @EqualsAndHashCode
-class CartItem {
+public class CartItem {
 
 	private Item item;
 	private int quantity;
 
 	private CartItem() {}
 
-	CartItem(Item item) {
+	public CartItem(Item item) {
 		this.item = item;
 		this.quantity = 1;
+	}
+
+	public void increment() {
+		this.quantity++;
 	}
 }
