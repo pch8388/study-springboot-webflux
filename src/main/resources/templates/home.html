@@ -49,7 +49,7 @@
         <tr th:each="cartItem : ${cart.cartItems}">
             <td th:text="${cartItem.item.id}"></td>
             <td th:text="${cartItem.item.name}"></td>
-            <td th:text="${cartItem.item.quantity}"></td>
+            <td th:text="${cartItem.quantity}"></td>
         </tr>
     </tbody>
 </table>
