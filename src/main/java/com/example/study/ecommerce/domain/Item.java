@@ -28,4 +28,9 @@ public class Item {
 		this.description = description;
 		this.price = price;
 	}
+
+	public Item(String id, String name, String description, double price) {
+		this(name, description, price);
+		this.id = id;
+	}
 }
