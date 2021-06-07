@@ -50,6 +50,11 @@
             <td th:text="${cartItem.item.id}"></td>
             <td th:text="${cartItem.item.name}"></td>
             <td th:text="${cartItem.quantity}"></td>
+            <td>
+                <form th:method="delete" th:action="@{'/remove/' + ${cartItem.item.id}}">
+                    <input type="submit" value="-1"/>
+                </form>
+            </td>
         </tr>
     </tbody>
 </table>
