@@ -1,0 +1,16 @@
+Spring boot Webflux study
+
+Restdocs start
+
+Request :
+
+include::{snippets}/findAll/curl-request.adoc[]
+
+Response :
+
+include::{snippets}/findAll/response-body.adoc[]
+
+
+HTTPie Request :
+
+include::{snippets}/findAll/httpie-request.adoc[]
