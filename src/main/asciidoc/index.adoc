@@ -1,16 +1,42 @@
 Spring boot Webflux study
 
-Restdocs start
+== 상품
 
-Request :
+=== 전체 조회
+==== Request :
 
 include::{snippets}/findAll/curl-request.adoc[]
 
-Response :
+==== Response :
 
 include::{snippets}/findAll/response-body.adoc[]
 
-
-HTTPie Request :
+==== HTTPie Request :
 
 include::{snippets}/findAll/httpie-request.adoc[]
+
+=== 한 건 조회
+==== Request :
+===== http:
+
+include::{snippets}/findOne-hypermedia/http-request.adoc[]
+
+===== curl:
+
+include::{snippets}/findOne-hypermedia/curl-request.adoc[]
+
+===== HTTPie:
+
+include::{snippets}/findOne-hypermedia/httpie-request.adoc[]
+
+==== Response :
+
+include::{snippets}/findOne-hypermedia/http-response.adoc[]
+
+===== Response Body
+
+include::{snippets}/findOne-hypermedia/response-body.adoc[]
+
+===== 링크
+
+include::{snippets}/findOne-hypermedia/links.adoc[]
