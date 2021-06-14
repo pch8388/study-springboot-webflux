@@ -2,10 +2,12 @@ package com.example.study.ecommerce.domain;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile("!test")
 public class TemplateDatabaseLoader {
 
 	@Bean
