@@ -90,4 +90,8 @@ public class InventoryService {
 	public Mono<Cart> getCart(String cartId) {
 		return this.cartRepository.findById(cartId);
 	}
+
+	public Mono<Item> saveItem(Item newItem) {
+		return this.itemRepository.save(newItem);
+	}
 }
