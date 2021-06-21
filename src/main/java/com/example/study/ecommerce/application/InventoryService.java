@@ -1,5 +1,6 @@
 package com.example.study.ecommerce.application;
 
+import static java.util.stream.Collectors.*;
 import static org.springframework.data.mongodb.core.query.Criteria.*;
 import static org.springframework.data.mongodb.core.query.Query.*;
 
@@ -93,5 +94,26 @@ public class InventoryService {
 
 	public Mono<Item> saveItem(Item newItem) {
 		return this.itemRepository.save(newItem);
+	}
+
+	public Mono<Void> deleteItem(String itemId) {
+		return this.itemRepository.deleteById(itemId);
+	}
+
+	public Mono<Cart> removeOneFromCart(String cartId, String itemId) {
+		return this.cartRepository.findById(cartId)
+			.defaultIfEmpty(new Cart(cartId))
+			.flatMap(cart -> cart.getCartItems().stream()
+				.filter(cartItem -> cartItem.getItem().getId().equals(itemId))
+				.findAny()
+				.map(cartItem -> {
+					cartItem.decrement();
+					return Mono.just(cart);
+				})
+				.orElse(Mono.empty()))
+			.map(cart -> new Cart(cart.getId(), cart.getCartItems().stream()
+				.filter(cartItem -> cartItem.getQuantity() > 0)
+				.collect(toList())))
+			.flatMap(this.cartRepository::save);
 	}
 }
