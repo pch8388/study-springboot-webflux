@@ -1,12 +1,13 @@
 package com.example.study.config;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.core.userdetails.User;
@@ -15,6 +16,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import com.example.study.user.domain.UserRepository;
 
 @Configuration
+@EnableReactiveMethodSecurity
 public class SecurityConfig {
 
 	@Bean
@@ -28,14 +30,12 @@ public class SecurityConfig {
 	}
 
 	static final String USER = "USER";
-	static final String INVENTORY = "INVENTORY";
+	public static final String INVENTORY = "INVENTORY";
 
 	@Bean
 	public SecurityWebFilterChain myCustomSecurityPolicy(ServerHttpSecurity http) {
 		return http
 			.authorizeExchange(exchanges -> exchanges
-				.pathMatchers(HttpMethod.POST, "/").hasRole(INVENTORY)
-				.pathMatchers(HttpMethod.DELETE, "/**").hasRole(INVENTORY)
 				.anyExchange().authenticated()
 				.and()
 				.httpBasic()
@@ -58,7 +58,7 @@ public class SecurityConfig {
 
 			operations.save(
 				new com.example.study.user.domain.User("manager", "password",
-					Collections.singletonList(role(INVENTORY))));
+					Arrays.asList(role(USER), role(INVENTORY))));
 
 		};
 	}

@@ -1,5 +1,6 @@
 package com.example.study.ecommerce.api;
 
+import static com.example.study.config.SecurityConfig.*;
 import static org.springframework.hateoas.server.reactive.WebFluxLinkBuilder.*;
 
 import org.springframework.hateoas.CollectionModel;
@@ -8,6 +9,9 @@ import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Links;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,15 +32,14 @@ public class AffordancesItemController {
 	private final ItemRepository itemRepository;
 
 	@GetMapping("/affordances/items/{id}")
-	public Mono<EntityModel<Item>> findOne(@PathVariable String id) {
+	public Mono<EntityModel<Item>> findOne(@PathVariable String id, Authentication auth) {
 		AffordancesItemController controller = methodOn(AffordancesItemController.class);
 
-		Mono<Link> selfLink = linkTo(controller.findOne(id))
+		Mono<Link> selfLink = linkTo(controller.findOne(id, auth))
 			.withSelfRel()
-			.andAffordance(controller.updateItem(null, id))
 			.toMono();
 
-		Mono<Link> aggregateLink = linkTo(controller.findAll())
+		Mono<Link> aggregateLink = linkTo(controller.findAll(auth))
 			.withRel(IanaLinkRelations.ITEM).toMono();
 
 		return Mono.zip(itemRepository.findById(id), selfLink, aggregateLink)
@@ -45,42 +48,49 @@ public class AffordancesItemController {
 	}
 
 	@GetMapping("/affordances/items")
-	public Mono<CollectionModel<EntityModel<Item>>> findAll() {
+	public Mono<CollectionModel<EntityModel<Item>>> findAll(Authentication auth) {
 		AffordancesItemController controller = methodOn(AffordancesItemController.class);
 
-		Mono<Link> aggregateRoot = linkTo(controller.findAll())
+		Mono<Link> aggregateRoot = linkTo(controller.findAll(auth))
 			.withSelfRel()
-			.andAffordance(controller.addNewItem(null))
+			.andAffordance(controller.addNewItem(null, auth))
 			.toMono();
 
 		return this.itemRepository.findAll()
-			.flatMap(item -> findOne(item.getId()))
+			.flatMap(item -> findOne(item.getId(), auth))
 			.collectList()
 			.flatMap(models -> aggregateRoot.map(
 				selfLink -> CollectionModel.of(models, selfLink)));
 	}
 
-	@PostMapping("/affordances/items")
-	Mono<ResponseEntity<?>> addNewItem(@RequestBody Mono<EntityModel<Item>> item) {
-		return item.map(EntityModel::getContent)
-			.flatMap(this.itemRepository::save)
+	@PreAuthorize("hasRole('" + INVENTORY + "')")
+	@PostMapping("/affordances/items/add")
+	Mono<ResponseEntity<?>> addNewItem(@RequestBody Item item, Authentication auth) {
+		return this.itemRepository.save(item)
 			.map(Item::getId)
-			.flatMap(this::findOne)
+			.flatMap(id -> findOne(id, auth))
 			.map(newModel -> ResponseEntity.created(newModel
 				.getRequiredLink(IanaLinkRelations.SELF)
-				.toUri()).body(newModel.getContent()));
+				.toUri()).build());
 	}
 
 	@PutMapping("/affordances/items/{id}")
 	public Mono<ResponseEntity<?>> updateItem(
-		@RequestBody Mono<EntityModel<Item>> item, @PathVariable String id) {
+		@RequestBody Mono<EntityModel<Item>> item, @PathVariable String id,
+		Authentication auth) {
 		return item.map(EntityModel::getContent)
 			.map(content -> new Item(id, content.getName(), content.getDescription(), content.getPrice()))
 			.flatMap(this.itemRepository::save)
-			.then(findOne(id))
+			.then(findOne(id, auth))
 			.map(model -> ResponseEntity.noContent()
 				.location(model.getRequiredLink(IanaLinkRelations.SELF).toUri()).build()
 			);
 	}
 
+	@PreAuthorize("hasRole('" + INVENTORY + "')")
+	@DeleteMapping("/affordances/items/delete/{id}")
+	public Mono<ResponseEntity<?>> deleteItem(@PathVariable String id) {
+		return this.itemRepository.deleteById(id)
+			.thenReturn(ResponseEntity.noContent().build());
+	}
 }

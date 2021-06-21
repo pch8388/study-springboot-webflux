@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @RequiredArgsConstructor
-@Service
+// @Service
 public class SpringAmqpItemService {
 	private final ItemRepository repository;
 
