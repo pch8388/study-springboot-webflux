@@ -11,6 +11,7 @@ import org.springframework.hateoas.Links;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +30,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class AffordancesItemController {
 
+	private static final SimpleGrantedAuthority ROLE_INVENTORY = new SimpleGrantedAuthority("ROLE_" + INVENTORY);
 	private final ItemRepository itemRepository;
 
 	@GetMapping("/affordances/items/{id}")
@@ -42,8 +44,22 @@ public class AffordancesItemController {
 		Mono<Link> aggregateLink = linkTo(controller.findAll(auth))
 			.withRel(IanaLinkRelations.ITEM).toMono();
 
-		return Mono.zip(itemRepository.findById(id), selfLink, aggregateLink)
-			.map(o -> EntityModel.of(o.getT1(), Links.of(o.getT2(), o.getT3())));
+		Mono<Links> allLinks;
+
+		if (auth.getAuthorities().contains(ROLE_INVENTORY)) {
+			Mono<Link> deleteLink = linkTo(controller.deleteItem(id))
+				.withRel("delete")
+				.toMono();
+			allLinks = Mono.zip(selfLink, aggregateLink, deleteLink)
+				.map(links -> Links.of(links.getT1(), links.getT2(), links.getT3()));
+		} else {
+			allLinks = Mono.zip(selfLink, aggregateLink)
+				.map(links -> Links.of(links.getT1(), links.getT2()));
+		}
+
+		return this.itemRepository.findById(id)
+			.zipWith(allLinks)
+			.map(o -> EntityModel.of(o.getT1(), o.getT2()));
 
 	}
 
